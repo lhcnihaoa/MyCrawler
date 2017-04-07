@@ -4,7 +4,6 @@ from bs4 import BeautifulSoup
 import requests
 import threading
 import string
-import time
 import random
 import csv
 import os
@@ -175,4 +174,3 @@ if __name__ == "__main__":
         Crawler.start()
     for Crawler in Crawler_list:
         Crawler.join()
-
