@@ -66,8 +66,9 @@ def get_distinctlist(html):
         "div", {"class": "option-list gio_district"})[0].find_all("a")
     distinct_list = []
     for distinct in distinct_html:
-        temp = Distinct(distinct.get_text(), distinct.attrs["href"])
-        distinct_list.append(temp)
+        if distinct.get_text() != "不限":
+            temp = Distinct(distinct.get_text(), distinct.attrs["href"])
+            distinct_list.append(temp)
     return distinct_list
 
 # 获得小分区列表
@@ -84,8 +85,9 @@ def get_regionlist(distinct_list):
         region_html = html.find_all(
             "div", {"class": "option-list sub-option-list gio_plate"})[0].find_all("a")
         for region in region_html:
-            temp = Region(region.get_text(), region.attrs["href"], distinct.name)
-            region_list.append(temp)
+            if region.get_text() != "不限":
+                temp = Region(region.get_text(), region.attrs["href"], distinct.name)
+                region_list.append(temp)
     return region_list
 
 # 获取房屋户型、售价等
@@ -116,7 +118,6 @@ def get_houseinfo(url):
     if html.find_all("a", {"gahref": "results_next_page"}):
         next_pagr = html.find_all("a", {"gahref": "results_next_page"})[0].attrs["href"]
         url = parse.quote('http://sh.lianjia.com' + next_pagr, safe=string.printable)
-        print("1")
         house_info += get_houseinfo(url)
     return house_info
 
@@ -135,18 +136,18 @@ def gethtml(url):
 
 #存储房型详细信息
 def save_detaildata(house_info):
-    with open("C:/users/林环城/PycharmProjects/house_info_detail.csv", 'a+', newline='') as csvFile:
+    with open("C:/users/smartlin/PycharmProjects/house_info_detail.csv", 'a+', newline='') as csvFile:
         writer = csv.writer(csvFile)
-        if os.path.getsize('C:/users/林环城/PycharmProjects/house_info_detail.csv') == 0:
+        if os.path.getsize('C:/users/smartlin/PycharmProjects/house_info_detail.csv') == 0:
             writer.writerow(['小区', '户型', '面积', '单价', '总价', '地址', '链接'])
         for house in house_info:
             writer.writerow([house.res_qua, house.house_type, house.area, house.unit_price, house.tot_price, house.addr, house.link])
 
 #存储区域详细信息
 def save_regiondata(region):
-    with open("C:/users/林环城/PycharmProjects/house_info_region.csv", 'a+', newline='') as csvFile:
+    with open("C:/users/smartlin/PycharmProjects/house_info_region.csv", 'a+', newline='') as csvFile:
         writer = csv.writer(csvFile)
-        if os.path.getsize('C:/users/林环城/PycharmProjects/house_info_region.csv') == 0:
+        if os.path.getsize('C:/users/smartlin/PycharmProjects/house_info_region.csv') == 0:
             writer.writerow(['行政区', '区域', '总面积', '平均单价'])
         writer.writerow([region.distinct, region.name, region.tot_area, region.unit_price])
 
@@ -157,11 +158,11 @@ if __name__ == "__main__":
     html = gethtml(url)
 
     distinct_list = get_distinctlist(html)
-    del distinct_list[0]  #删除“不限”
 
     region_list = get_regionlist(distinct_list)
-    del region_list[0]  #删除“不限”
 
+    for reg in region_list:
+        print(reg.name, reg.distinct)
 
     region_queue = region_list
     mutex = threading.Lock()
