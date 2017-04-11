@@ -123,8 +123,11 @@ def get_houseinfo(url):
 
 # 下载给定地址页面
 def gethtml(url):
+    global ip_list
+    ip_item = random.choice(ip_list)
+    proxies = {ip_item["type"]: ip_item["type"]+"://"+ip_item["ip"]+":"+ip_item["port"], }
     try:
-        html = requests.get(url).content
+        html = requests.get(url, proxies=proxies).content
     except error.URLError as e:
         print("the url is wrong!" + str(e.reason))
         return None
@@ -151,7 +154,21 @@ def save_regiondata(region):
             writer.writerow(['行政区', '区域', '总面积', '平均单价'])
         writer.writerow([region.distinct, region.name, region.tot_area, region.unit_price])
 
+#读取代理IP池
+def get_ippool():
+    with open("D:/MyPythonProjects/ip_record.csv", 'r') as csvFile:
+        reader = csv.reader(csvFile)
+        headers = next(reader)
+        ip_list = []
+        for row in reader:
+            record = {}
+            record["ip"] = row[0]
+            record["port"] = row[1]
+            record["type"] = row[2]
+            ip_list.append(record)
+    return ip_list
 
+ip_list = get_ippool()
 
 if __name__ == "__main__":
     url = parse.quote('http://sh.lianjia.com/ershoufang/', safe=string.printable)
@@ -160,9 +177,6 @@ if __name__ == "__main__":
     distinct_list = get_distinctlist(html)
 
     region_list = get_regionlist(distinct_list)
-
-    for reg in region_list:
-        print(reg.name, reg.distinct)
 
     region_queue = region_list
     mutex = threading.Lock()
